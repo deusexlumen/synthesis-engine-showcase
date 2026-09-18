@@ -1,0 +1,57 @@
+Synthesis Engine — Showcase Repository License
+
+Copyright (c) 2026 deusexlumen. All rights reserved.
+
+NOTE TO THE COPYRIGHT HOLDER: replace "deusexlumen" above with your full
+legal name or the name of the owning company before relying on this
+notice. A licence is easier to enforce when the rights holder is
+unambiguously identified.
+
+------------------------------------------------------------------------
+
+1. WHAT THIS REPOSITORY IS
+
+   This repository is a public showcase for the "Synthesis Engine"
+   product. It contains documentation, architecture diagrams, design
+   assets and written material describing the product (the "Content").
+   It does NOT contain the product's source code, which is maintained in
+   a separate, private repository.
+
+2. OWNERSHIP
+
+   The Content is the exclusive property of the copyright holder and is
+   protected by copyright law and international treaties.
+
+3. PERMITTED USE
+
+   You may view and read the Content for the purposes of evaluation,
+   employment consideration, investment consideration or personal
+   reference.
+
+4. RESTRICTIONS
+
+   Without the prior written permission of the copyright holder, you may
+   NOT:
+
+   a) copy, reproduce or redistribute the Content, in whole or in part,
+      for publication elsewhere;
+   b) present the Content, or a derivative of it, as your own work;
+   c) use the design assets (including the hero artwork) for any other
+      product or project;
+   d) remove or alter any copyright or proprietary notice.
+
+5. NO WARRANTY
+
+   THE CONTENT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED. IT DESCRIBES A PRODUCT UNDER ACTIVE DEVELOPMENT; DETAILS
+   MAY CHANGE WITHOUT NOTICE.
+
+6. THE PRODUCT ITSELF
+
+   The Synthesis Engine product and its source code are governed by a
+   separate, proprietary licence in the private repository that holds
+   them. Nothing in this document grants any right to that source code.
+
+------------------------------------------------------------------------
+
+For enquiries, open an issue on this repository.
