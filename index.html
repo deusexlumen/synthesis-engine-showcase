@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthesis Engine — Where symbolism meets measurable astronomy</title>
+  <meta name="description" content="Three symbolic systems. One cross-correlated profile. Measured astronomical precision. AI that reasons across all three at once." />
+  <meta name="theme-color" content="#05050a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #05050a;
+      --surface: rgba(12, 12, 20, 0.78);
+      --surface-solid: #0c0c14;
+      --border: rgba(140, 71, 209, 0.22);
+      --border-hover: rgba(168, 85, 232, 0.5);
+      --text: #e8e6f0;
+      --muted: #9b97b0;
+      --accent: #a855e8;
+      --accent-2: #4775d1;
+      --glow: rgba(168, 85, 232, 0.4);
+      --radius: 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+
+    body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ——— Canvas ——— */
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    #canvas-container canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 85% 75% at 50% 35%, transparent 0%, rgba(5,5,10,0.5) 55%, rgba(5,5,10,0.88) 100%),
+        linear-gradient(to bottom, transparent 0%, transparent 55%, rgba(5,5,10,0.75) 100%);
+    }
+
+    /* ——— Loading ——— */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-ring {
+      width: 48px;
+      height: 48px;
+      border: 2px solid rgba(168,85,232,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1.25rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ——— Layout ——— */
+    .content {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ——— Header ——— */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.5rem;
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      background: rgba(5, 5, 10, 0.55);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #a855e8 0%, #6366f1 50%, #4775d1 100%);
+      box-shadow: 0 0 18px var(--glow);
+      flex-shrink: 0;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    nav a:not(.btn) {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    nav a:not(.btn):hover {
+      color: var(--text);
+      background: rgba(168, 85, 232, 0.08);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 560;
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #a855e8, #7c3aed);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(168, 85, 232, 0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 28px rgba(168, 85, 232, 0.5);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      background: rgba(168, 85, 232, 0.1);
+      border-color: var(--border-hover);
+    }
+
+    /* ——— Hero ——— */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5rem 1.25rem 4.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.95rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 550;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(168, 85, 232, 0.12);
+      border: 1px solid rgba(168, 85, 232, 0.28);
+      color: #c084fc;
+      margin-bottom: 1.6rem;
+    }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: clamp(2.15rem, 5.5vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.15rem;
+      background: linear-gradient(180deg, #ffffff 15%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2.2vw, 1.125rem);
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 620px;
+      margin-bottom: 2.25rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 3.25rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+      width: 100%;
+      max-width: 520px;
+    }
+    .stat {
+      text-align: center;
+      padding: 1rem 0.75rem;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .stat-value {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: #e9d5ff;
+      margin-bottom: 0.15rem;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    /* ——— Sections ——— */
+    section {
+      padding: 4.5rem 1.25rem;
+      max-width: 1080px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .section-title {
+      font-size: clamp(1.45rem, 3vw, 1.75rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+      text-align: center;
+    }
+    .section-lead {
+      text-align: center;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.4rem;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+    .card-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: 0.9rem;
+      background: rgba(168, 85, 232, 0.12);
+      border: 1px solid rgba(168, 85, 232, 0.22);
+    }
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ——— Precision table ——— */
+    .precision-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 480px;
+    }
+    th, td {
+      padding: 0.85rem 1.1rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(140, 71, 209, 0.12);
+    }
+    th {
+      font-weight: 500;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    tr:last-child td { border-bottom: none; }
+    td:first-child {
+      font-weight: 500;
+      color: #e9d5ff;
+      white-space: nowrap;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.8rem;
+    }
+    .precision-note {
+      text-align: center;
+      margin-top: 1.15rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.55;
+    }
+
+    /* ——— CTA ——— */
+    .cta-block {
+      text-align: center;
+      padding: 3.5rem 1.25rem 4.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .cta-block h2 {
+      font-size: 1.65rem;
+      font-weight: 600;
+      margin-bottom: 0.65rem;
+      letter-spacing: -0.02em;
+    }
+    .cta-block p {
+      color: var(--muted);
+      margin-bottom: 1.6rem;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* ——— Footer ——— */
+    footer {
+      text-align: center;
+      padding: 1.75rem 1.25rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.78rem;
+      background: rgba(5, 5, 10, 0.6);
+      backdrop-filter: blur(8px);
+    }
+    footer a {
+      color: #c084fc;
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+
+    /* ——— Fallback notice ——— */
+    #webgpu-fallback {
+      display: none;
+      position: fixed;
+      bottom: 1.1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: rgba(18, 10, 28, 0.92);
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.05rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      backdrop-filter: blur(10px);
+      max-width: calc(100% - 2rem);
+      text-align: center;
+    }
+
+    /* ——— Responsive ——— */
+    @media (max-width: 720px) {
+      header { padding: 0.75rem 1rem; }
+      nav a:not(.btn) { display: none; }
+      .hero { padding: 3.5rem 1rem 3.5rem; }
+      .stats { grid-template-columns: 1fr; gap: 0.65rem; max-width: 280px; }
+      section { padding: 3.25rem 1rem; }
+      .cta-block { padding: 2.5rem 1rem 3.5rem; }
+    }
+
+    @media (max-width: 400px) {
+      .hero-actions { flex-direction: column; width: 100%; }
+      .hero-actions .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Initializing spectacle</div>
+  </div>
+
+  <div id="canvas-container"></div>
+  <div class="vignette"></div>
+
+  <div class="content">
+    <header>
+      <a class="logo" href="#">
+        <div class="logo-mark" aria-hidden="true"></div>
+        Synthesis Engine
+      </a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#precision">Precision</a>
+        <a href="#architecture">Architecture</a>
+        <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">View Showcase</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="badge">
+          <span class="badge-dot" aria-hidden="true"></span>
+          In development · 263 tests
+        </div>
+        <h1>Where symbolism meets<br>measurable astronomy</h1>
+        <p class="hero-sub">
+          One set of birth data. Three symbolic systems — Human Design, Gene Keys and Dan Millman numerology —
+          cross-correlated into a single profile. An LLM that reasons across all three at once.
+          Planetary positions computed server-side against a published accuracy benchmark.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">
+            Explore the architecture
+          </a>
+          <a class="btn btn-ghost" href="#precision">See the precision ladder</a>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Systems</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">0.006°</div>
+            <div class="stat-label">Sun accuracy</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">263</div>
+            <div class="stat-label">Test cases</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <h2 class="section-title">What it does</h2>
+        <p class="section-lead">Not another isolated chart. A synthesis engine that treats three systems as one coherent signal.</p>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">◉</div>
+            <h3>Human Design</h3>
+            <p>Full BodyGraph — 9 centers, energy type, authority, profile lines 1–6, all 64 gates with planetary activations, channels and PHS, rendered as SVG.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">◈</div>
+            <h3>Gene Keys</h3>
+            <p>All 64 keys across Shadow → Gift → Siddhi, assembled into a hologenetic profile with contemplation prompts.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">✦</div>
+            <h3>Millman Numerology</h3>
+            <p>Life path, master numbers, soul &amp; career paths, challenges, peaks by life stage and personal year — zero-amplifier logic included.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">✧</div>
+            <h3>AI Synthesis &amp; Coaching</h3>
+            <p>OpenAI · Anthropic · Google via backend proxy only. Socratic, cross-correlating all three systems. Results cached 30 days.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">◎</div>
+            <h3>Transits</h3>
+            <p>Daily planetary positions, natal comparison, date-range scans and moon phases — same precision ladder as natal charts.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">⬡</div>
+            <h3>Journal · PDF · Billing</h3>
+            <p>Server-side journal, PDF export of charts and reports, Stripe checkout, portal and webhooks.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="precision">
+        <h2 class="section-title">The precision ladder</h2>
+        <p class="section-lead">Astronomical accuracy is a product tier, not a marketing adjective. Two interchangeable providers behind one interface.</p>
+        <div class="precision-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">standard</th>
+                <th scope="col">swiss-professional</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tiers</td>
+                <td>FREE · BASIC · guests</td>
+                <td>PREMIUM · PRO</td>
+              </tr>
+              <tr>
+                <td>Library</td>
+                <td>astronomia (Meeus)</td>
+                <td>Swiss Ephemeris (sweph)</td>
+              </tr>
+              <tr>
+                <td>License</td>
+                <td class="mono">MIT</td>
+                <td class="mono">AGPL / commercial</td>
+              </tr>
+              <tr>
+                <td>Accuracy</td>
+                <td class="mono">Sun 0.0059° · Moon 0.0152°</td>
+                <td class="mono">±0.0001° (reference)</td>
+              </tr>
+              <tr>
+                <td>Chiron</td>
+                <td>not available (explicit)</td>
+                <td>included</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="precision-note">
+          Measured against a Swiss Ephemeris fixture across 10 dates 1950–2030.
+          A Human Design gate spans 5.625° — the standard provider’s worst case is ~370× narrower.
+        </p>
+      </section>
+
+      <section id="architecture">
+        <h2 class="section-title">Why this is not another astrology app</h2>
+        <p class="section-lead">Most projects ship one system and claim “precise” without a number. This one is built the other way around.</p>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Three systems, one synthesis</h3>
+            <p>Not isolated readings. Cross-correlation into a single coherent profile that an LLM can reason across.</p>
+          </div>
+          <div class="card">
+            <h3>Measured error table</h3>
+            <p>Automated tests assert accuracy against a Swiss Ephemeris fixture on every CI run — not a one-time claim.</p>
+          </div>
+          <div class="card">
+            <h3>License-isolated providers</h3>
+            <p>CI fails the build if AGPL ephemeris code reaches the standard image. Professional tier is opt-in.</p>
+          </div>
+          <div class="card">
+            <h3>Server recomputes everything</h3>
+            <p>Any endpoint that persists a chart recomputes it server-side. Client-submitted numbers are never trusted.</p>
+          </div>
+          <div class="card">
+            <h3>Honest data-flow</h3>
+            <p>Earlier “data never leaves your device” claim was retracted after the web pivot. Transparency over marketing.</p>
+          </div>
+          <div class="card">
+            <h3>Tokens never in storage</h3>
+            <p>Automated tests assert access tokens and API keys are never written to browser storage.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="cta-block">
+        <h2>Interested in the engineering?</h2>
+        <p>
+          This repository is a public showcase of architecture, decisions and measured claims.
+          Source lives in a private repo. Collaborators, employers and investors welcome.
+        </p>
+        <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">
+          Open the showcase on GitHub
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        Synthesis Engine · Showcase repository ·
+        <a href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">GitHub</a>
+        · Human Design · Gene Keys · Dan Millman numerology
+      </p>
+    </footer>
+  </div>
+
+  <div id="webgpu-fallback">WebGPU not available — static gradient. Use Chrome / Edge for the full spectacle.</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.webgpu.js",
+      "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.tsl.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    /**
+     * Synthesis Engine Landing — WebGPU Spectacle
+     * Built with threejs-webgpu-spectacle skill principles:
+     * projected accretion + photon ring + multi-layer star field + nebula
+     */
+    import * as THREE from 'three/webgpu';
+    import {
+      float, vec2, vec3, vec4, uniform,
+      uv, sin, cos, abs, length, normalize, mix,
+      smoothstep, pow, exp, max, fract, floor, Fn
+    } from 'three/tsl';
+
+    const container = document.getElementById('canvas-container');
+    const loader = document.getElementById('loader');
+    const fallbackEl = document.getElementById('webgpu-fallback');
+
+    let renderer, camera, scene;
+    let mouseX = 0, mouseY = 0;
+    let targetX = 0, targetY = 0;
+
+    function hideLoader() {
+      loader.classList.add('hidden');
+    }
+
+    async function init() {
+      try {
+        renderer = new THREE.WebGPURenderer({ antialias: true, alpha: false });
+        await renderer.init();
+      } catch (err) {
+        console.warn('[Synthesis] WebGPU unavailable:', err);
+        fallbackEl.style.display = 'block';
+        container.style.background =
+          'radial-gradient(ellipse at 50% 28%, #1a0a2e 0%, #0a0614 45%, #05050a 100%)';
+        hideLoader();
+        return;
+      }
+
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x05050a);
+      container.appendChild(renderer.domElement);
+
+      camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      scene = new THREE.Scene();
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3)
+      );
+
+      const uMouse = uniform(new THREE.Vector2(0, 0));
+      const uRes = uniform(new THREE.Vector2(window.innerWidth, window.innerHeight));
+      const uTime = uniform(0);
+
+      const material = new THREE.MeshBasicNodeMaterial();
+
+      material.colorNode = Fn(() => {
+        const aspect = uRes.x.div(uRes.y);
+        const uv0 = uv().sub(0.5).mul(vec2(aspect, float(1.0))).mul(2.0);
+        const m = uMouse.mul(0.11);
+        const p = uv0.add(m);
+
+        const t = uTime.mul(0.1);
+
+        // Slow orbital drift
+        const ang = t.mul(0.12);
+        const ca = cos(ang);
+        const sa = sin(ang);
+        const px = p.x.mul(ca).sub(p.y.mul(sa.mul(0.28)));
+        const py = p.y.mul(cos(ang.mul(0.65))).add(0.06);
+
+        const d = length(vec2(px, py));
+
+        // ——— Accretion disk ———
+        const diskInner = float(0.3);
+        const diskOuter = float(1.12);
+        const diskMask = smoothstep(diskOuter, diskOuter.sub(0.22), d)
+          .mul(smoothstep(diskInner.sub(0.07), diskInner, d));
+        const thickness = exp(float(-16.0).mul(abs(py).mul(1.7)));
+        const disk = diskMask.mul(thickness);
+
+        const heat = float(1.0).sub(smoothstep(diskInner, diskOuter, d));
+        const diskCol = mix(
+          vec3(0.5, 0.1, 0.82),
+          vec3(1.0, 0.78, 0.38),
+          heat.mul(heat)
+        ).mul(heat.mul(2.3).add(0.5));
+
+        const doppler = px.mul(0.42).add(1.0);
+        const diskEmit = diskCol.mul(disk).mul(doppler);
+
+        // Photon ring
+        const ring = exp(float(-26.0).mul(abs(d.sub(0.36)))).mul(0.5);
+        const ringCol = vec3(1.0, 0.84, 0.48).mul(ring);
+
+        // Dark core
+        const core = smoothstep(0.26, 0.1, d);
+        const coreDark = float(1.0).sub(core.mul(0.9));
+
+        // ——— Star field ———
+        const starDir = normalize(vec3(px, py, float(1.35)));
+
+        const hash3 = (v) => {
+          const q = fract(v.mul(vec3(0.1031, 0.1030, 0.0973)));
+          return fract(q.x.add(q.y).mul(q.z.add(33.33)));
+        };
+
+        const sc1 = floor(starDir.mul(40.0));
+        const sf1 = fract(starDir.mul(40.0));
+        const sh1 = hash3(sc1);
+        const bright = smoothstep(0.016, 0.0, length(sf1.sub(0.5)))
+          .mul(smoothstep(0.92, 1.0, sh1));
+
+        const sc2 = floor(starDir.mul(105.0));
+        const sf2 = fract(starDir.mul(105.0));
+        const sh2 = hash3(sc2.add(19.0));
+        const faint = smoothstep(0.028, 0.0, length(sf2.sub(0.5)))
+          .mul(smoothstep(0.8, 1.0, sh2))
+          .mul(0.38);
+
+        const stars = vec3(0.88, 0.92, 1.0).mul(bright.mul(2.1).add(faint));
+
+        // Nebula
+        const n1 = abs(sin(starDir.x.mul(2.6).add(starDir.y.mul(1.8)).add(t.mul(0.35))));
+        const n2 = abs(sin(starDir.x.mul(1.2).sub(starDir.y.mul(2.3)).add(t.mul(0.22))));
+        const neb = pow(n1.mul(n2), float(2.4)).mul(0.13);
+        const nebCol = vec3(0.48, 0.16, 0.88).mul(neb);
+
+        // Compose
+        const vignette = float(1.0).sub(length(p).mul(0.3));
+        let col = diskEmit.add(ringCol).add(stars).add(nebCol).toVar();
+        col.mulAssign(coreDark);
+        col.mulAssign(vignette.mul(1.1));
+        col.addAssign(vec3(0.012, 0.006, 0.03));
+
+        // Filmic
+        col.assign(col.div(col.add(1.0)));
+        col.assign(pow(col, vec3(0.9)));
+
+        return vec4(col, 1.0);
+      })();
+
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      window.addEventListener('pointermove', (e) => {
+        targetX = (e.clientX / window.innerWidth) * 2 - 1;
+        targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      window.addEventListener('resize', () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h);
+        uRes.value.set(w, h);
+      });
+
+      const clock = new THREE.Clock();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        uTime.value = clock.getElapsedTime();
+        mouseX += (targetX - mouseX) * 0.035;
+        mouseY += (targetY - mouseY) * 0.035;
+        uMouse.value.set(mouseX, mouseY);
+        renderer.render(scene, camera);
+      }
+
+      animate();
+      // Small delay so first frame is painted
+      requestAnimationFrame(() => {
+        setTimeout(hideLoader, 180);
+      });
+    }
+
+    init().catch((e) => {
+      console.error(e);
+      hideLoader();
+      fallbackEl.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
