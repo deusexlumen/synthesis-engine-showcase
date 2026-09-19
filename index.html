@@ -1,871 +1,830 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Synthesis Engine — Where symbolism meets measurable astronomy</title>
-  <meta name="description" content="Three symbolic systems. One cross-correlated profile. Measured astronomical precision. AI that reasons across all three at once." />
-  <meta name="theme-color" content="#05050a" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #05050a;
-      --surface: rgba(12, 12, 20, 0.78);
-      --surface-solid: #0c0c14;
-      --border: rgba(140, 71, 209, 0.22);
-      --border-hover: rgba(168, 85, 232, 0.5);
-      --text: #e8e6f0;
-      --muted: #9b97b0;
-      --accent: #a855e8;
-      --accent-2: #4775d1;
-      --glow: rgba(168, 85, 232, 0.4);
-      --radius: 14px;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      scroll-behavior: smooth;
-      height: 100%;
-    }
-
-    body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      line-height: 1.5;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ——— Canvas ——— */
-    #canvas-container {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
-    #canvas-container canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background:
-        radial-gradient(ellipse 85% 75% at 50% 35%, transparent 0%, rgba(5,5,10,0.5) 55%, rgba(5,5,10,0.88) 100%),
-        linear-gradient(to bottom, transparent 0%, transparent 55%, rgba(5,5,10,0.75) 100%);
-    }
-
-    /* ——— Loading ——— */
-    #loader {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-    #loader.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .loader-ring {
-      width: 48px;
-      height: 48px;
-      border: 2px solid rgba(168,85,232,0.2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 1.25rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text {
-      font-size: 0.8rem;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* ——— Layout ——— */
-    .content {
-      position: relative;
-      z-index: 2;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ——— Header ——— */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.9rem 1.5rem;
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      background: rgba(5, 5, 10, 0.55);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      font-weight: 600;
-      font-size: 1rem;
-      letter-spacing: 0.02em;
-      text-decoration: none;
-      color: var(--text);
-    }
-    .logo-mark {
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      background: linear-gradient(135deg, #a855e8 0%, #6366f1 50%, #4775d1 100%);
-      box-shadow: 0 0 18px var(--glow);
-      flex-shrink: 0;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-    nav a:not(.btn) {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      padding: 0.45rem 0.85rem;
-      border-radius: 8px;
-      transition: color 0.15s, background 0.15s;
-    }
-    nav a:not(.btn):hover {
-      color: var(--text);
-      background: rgba(168, 85, 232, 0.08);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      padding: 0.55rem 1.2rem;
-      border-radius: 999px;
-      font-size: 0.875rem;
-      font-weight: 560;
-      text-decoration: none;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
-      white-space: nowrap;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #a855e8, #7c3aed);
-      color: #fff;
-      box-shadow: 0 0 20px rgba(168, 85, 232, 0.35);
-    }
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 28px rgba(168, 85, 232, 0.5);
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--text);
-      border-color: var(--border);
-    }
-    .btn-ghost:hover {
-      background: rgba(168, 85, 232, 0.1);
-      border-color: var(--border-hover);
-    }
-
-    /* ——— Hero ——— */
-    .hero {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 5rem 1.25rem 4.5rem;
-      max-width: 900px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.35rem 0.95rem;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 550;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      background: rgba(168, 85, 232, 0.12);
-      border: 1px solid rgba(168, 85, 232, 0.28);
-      color: #c084fc;
-      margin-bottom: 1.6rem;
-    }
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      animation: pulse 2.2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.45; transform: scale(0.85); }
-    }
-
-    h1 {
-      font-size: clamp(2.15rem, 5.5vw, 3.5rem);
-      font-weight: 700;
-      line-height: 1.12;
-      letter-spacing: -0.03em;
-      margin-bottom: 1.15rem;
-      background: linear-gradient(180deg, #ffffff 15%, #c4b5fd 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2.2vw, 1.125rem);
-      line-height: 1.65;
-      color: var(--muted);
-      max-width: 620px;
-      margin-bottom: 2.25rem;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      justify-content: center;
-      margin-bottom: 3.25rem;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.85rem;
-      width: 100%;
-      max-width: 520px;
-    }
-    .stat {
-      text-align: center;
-      padding: 1rem 0.75rem;
-      border-radius: var(--radius);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-    }
-    .stat-value {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 1.4rem;
-      font-weight: 500;
-      color: #e9d5ff;
-      margin-bottom: 0.15rem;
-    }
-    .stat-label {
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-    }
-
-    /* ——— Sections ——— */
-    section {
-      padding: 4.5rem 1.25rem;
-      max-width: 1080px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .section-title {
-      font-size: clamp(1.45rem, 3vw, 1.75rem);
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.6rem;
-      text-align: center;
-    }
-    .section-lead {
-      text-align: center;
-      color: var(--muted);
-      max-width: 520px;
-      margin: 0 auto 2.5rem;
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 1rem;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.35rem 1.4rem;
-      backdrop-filter: blur(12px);
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-    }
-    .card-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      margin-bottom: 0.9rem;
-      background: rgba(168, 85, 232, 0.12);
-      border: 1px solid rgba(168, 85, 232, 0.22);
-    }
-    .card h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-    .card p {
-      font-size: 0.875rem;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    /* ——— Precision table ——— */
-    .precision-wrap {
-      overflow-x: auto;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--surface);
-      backdrop-filter: blur(12px);
-      -webkit-overflow-scrolling: touch;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      min-width: 480px;
-    }
-    th, td {
-      padding: 0.85rem 1.1rem;
-      text-align: left;
-      border-bottom: 1px solid rgba(140, 71, 209, 0.12);
-    }
-    th {
-      font-weight: 500;
-      color: var(--muted);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      background: rgba(0, 0, 0, 0.3);
-    }
-    tr:last-child td { border-bottom: none; }
-    td:first-child {
-      font-weight: 500;
-      color: #e9d5ff;
-      white-space: nowrap;
-    }
-    .mono {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 0.8rem;
-    }
-    .precision-note {
-      text-align: center;
-      margin-top: 1.15rem;
-      font-size: 0.82rem;
-      color: var(--muted);
-      max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.55;
-    }
-
-    /* ——— CTA ——— */
-    .cta-block {
-      text-align: center;
-      padding: 3.5rem 1.25rem 4.5rem;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .cta-block h2 {
-      font-size: 1.65rem;
-      font-weight: 600;
-      margin-bottom: 0.65rem;
-      letter-spacing: -0.02em;
-    }
-    .cta-block p {
-      color: var(--muted);
-      margin-bottom: 1.6rem;
-      line-height: 1.6;
-      font-size: 0.95rem;
-    }
-
-    /* ——— Footer ——— */
-    footer {
-      text-align: center;
-      padding: 1.75rem 1.25rem;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 0.78rem;
-      background: rgba(5, 5, 10, 0.6);
-      backdrop-filter: blur(8px);
-    }
-    footer a {
-      color: #c084fc;
-      text-decoration: none;
-    }
-    footer a:hover { text-decoration: underline; }
-
-    /* ——— Fallback notice ——— */
-    #webgpu-fallback {
-      display: none;
-      position: fixed;
-      bottom: 1.1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 30;
-      background: rgba(18, 10, 28, 0.92);
-      border: 1px solid var(--border);
-      padding: 0.6rem 1.05rem;
-      border-radius: 10px;
-      font-size: 0.78rem;
-      color: var(--muted);
-      backdrop-filter: blur(10px);
-      max-width: calc(100% - 2rem);
-      text-align: center;
-    }
-
-    /* ——— Responsive ——— */
-    @media (max-width: 720px) {
-      header { padding: 0.75rem 1rem; }
-      nav a:not(.btn) { display: none; }
-      .hero { padding: 3.5rem 1rem 3.5rem; }
-      .stats { grid-template-columns: 1fr; gap: 0.65rem; max-width: 280px; }
-      section { padding: 3.25rem 1rem; }
-      .cta-block { padding: 2.5rem 1rem 3.5rem; }
-    }
-
-    @media (max-width: 400px) {
-      .hero-actions { flex-direction: column; width: 100%; }
-      .hero-actions .btn { width: 100%; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
-  <div id="loader">
-    <div class="loader-ring"></div>
-    <div class="loader-text">Initializing spectacle</div>
-  </div>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-01f61d3e-8886-4aad-a6dd-2829a970a1d6/styles.css">
+  <script src="_ds/nocturne-01f61d3e-8886-4aad-a6dd-2829a970a1d6/_ds_bundle.js"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <style>
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-800); border-radius: 8px; }
+    a { color: var(--color-accent-300); }
+    a:hover { color: var(--color-accent-200); }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</helmet>
 
-  <div id="canvas-container"></div>
-  <div class="vignette"></div>
+<div style="background: var(--color-bg); color: var(--color-text); min-height: 100vh; overflow-x: hidden;">
 
-  <div class="content">
-    <header>
-      <a class="logo" href="#">
-        <div class="logo-mark" aria-hidden="true"></div>
-        Synthesis Engine
-      </a>
-      <nav>
-        <a href="#features">Features</a>
-        <a href="#precision">Precision</a>
-        <a href="#architecture">Architecture</a>
-        <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">View Showcase</a>
-      </nav>
-    </header>
+  <nav class="nav" style="position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: color-mix(in srgb, var(--color-bg) 72%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--color-divider); gap: var(--space-3);">
+    <span class="nav-brand" style="white-space: nowrap; flex-shrink: 0;"><i class="ph ph-hexagon" style="color: var(--color-accent); margin-right: 6px;"></i>Synthesis Engine</span>
+    <div style="display: {{ navLinksDisplay }}; gap: var(--space-6); margin-left: auto;">
+      <a href="#systeme" style="white-space: nowrap;">{{ t.navSystems }}</a>
+      <a href="#genauigkeit" style="white-space: nowrap;">{{ t.navPrecision }}</a>
+      <a href="#architektur" style="white-space: nowrap;">{{ t.navArchitecture }}</a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 2px; margin-left: auto; flex-shrink: 0;">
+      <button onClick="{{ setDe }}" style="background: none; border: none; cursor: pointer; font: inherit; font-size: 12px; letter-spacing: 0.08em; padding: 6px 8px; border-radius: var(--radius-sm); color: {{ deColor }};" style-hover="background: color-mix(in srgb, var(--color-accent) 12%, transparent);">DE</button>
+      <span style="opacity: 0.3; font-size: 12px;">/</span>
+      <button onClick="{{ setEn }}" style="background: none; border: none; cursor: pointer; font: inherit; font-size: 12px; letter-spacing: 0.08em; padding: 6px 8px; border-radius: var(--radius-sm); color: {{ enColor }};" style-hover="background: color-mix(in srgb, var(--color-accent) 12%, transparent);">EN</button>
+    </div>
+    <a href="#kontakt" class="btn btn-ghost" style="white-space: nowrap; flex-shrink: 0;">{{ t.navContact }}</a>
+  </nav>
 
-    <main>
-      <section class="hero">
-        <div class="badge">
-          <span class="badge-dot" aria-hidden="true"></span>
-          In development · 263 tests
+  <div ref="{{ wrapperRef }}" style="position: relative; height: {{ wrapperHeight }};">
+    <div style="{{ heroStageStyle }}">
+      <canvas ref="{{ canvasRef }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></canvas>
+      <div style="{{ heroScrimStyle }}"></div>
+
+      <div style="position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;">
+        <div style="{{ diagramStyle }}">
+          <svg viewBox="0 0 460 460" style="width: 100%; height: 100%; overflow: visible;">
+            <g opacity="{{ numOpacity }}" stroke="var(--color-accent-400)" fill="none">
+              <path d="{{ spiralPath }}" stroke-width="0.8" opacity="0.55"></path>
+              <circle cx="230" cy="230" r="150" stroke-width="0.6" opacity="0.28" stroke-dasharray="2 7"></circle>
+              <circle cx="230" cy="62" r="4.5" fill="var(--color-accent-300)" stroke="none"></circle>
+              <circle cx="375" cy="314" r="4.5" fill="var(--color-accent-300)" stroke="none"></circle>
+              <circle cx="85" cy="314" r="4.5" fill="var(--color-accent-300)" stroke="none"></circle>
+              <text x="230" y="44" text-anchor="middle" fill="var(--color-accent-200)" stroke="none" style="font-size: 12px; letter-spacing: 0.1em;">7</text>
+              <text x="398" y="322" text-anchor="middle" fill="var(--color-accent-200)" stroke="none" style="font-size: 12px; letter-spacing: 0.1em;">3</text>
+              <text x="58" y="322" text-anchor="middle" fill="var(--color-accent-200)" stroke="none" style="font-size: 12px; letter-spacing: 0.1em;">22</text>
+            </g>
+            <g opacity="{{ gkOpacity }}">
+              <path d="{{ ringPath }}" stroke="var(--color-accent-600)" stroke-width="1.1" opacity="0.7" fill="none"></path>
+              <path d="{{ ringActivePath }}" stroke="var(--color-accent-200)" stroke-width="1.8" fill="none"></path>
+              <circle cx="230" cy="230" r="196" fill="none" stroke="var(--color-accent-700)" stroke-width="0.6" opacity="0.5"></circle>
+            </g>
+            <g opacity="{{ synthOpacity }}" stroke="var(--color-accent-300)" stroke-width="0.7">
+              <path d="{{ synthPath }}" fill="none" opacity="0.4"></path>
+            </g>
+            <g transform="translate(100,20)">
+              <g opacity="{{ hdOpacity }}" fill="none" stroke="var(--color-accent-500)" stroke-width="1.4">
+                <polygon points="130,12 156,52 104,52"></polygon>
+                <polygon points="104,70 156,70 130,110"></polygon>
+                <rect x="104" y="128" width="52" height="40"></rect>
+                <polygon points="130,175 160,205 130,235 100,205" fill="color-mix(in srgb, var(--color-accent) 16%, transparent)"></polygon>
+                <polygon points="178,196 206,209 178,222"></polygon>
+                <polygon points="40,232 76,252 40,272"></polygon>
+                <polygon points="220,232 184,252 220,272" fill="color-mix(in srgb, var(--color-accent) 14%, transparent)"></polygon>
+                <rect x="104" y="260" width="52" height="40" fill="color-mix(in srgb, var(--color-accent) 22%, transparent)"></rect>
+                <rect x="104" y="340" width="52" height="40"></rect>
+              </g>
+              <path d="{{ channelPath }}" pathLength="1" fill="none" stroke="var(--color-accent-200)" stroke-width="1.6" stroke-dasharray="1" style="stroke-dashoffset: {{ channelDash }};" opacity="{{ hdOpacity }}"></path>
+            </g>
+          </svg>
         </div>
-        <h1>Where symbolism meets<br>measurable astronomy</h1>
-        <p class="hero-sub">
-          One set of birth data. Three symbolic systems — Human Design, Gene Keys and Dan Millman numerology —
-          cross-correlated into a single profile. An LLM that reasons across all three at once.
-          Planetary positions computed server-side against a published accuracy benchmark.
-        </p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">
-            Explore the architecture
-          </a>
-          <a class="btn btn-ghost" href="#precision">See the precision ladder</a>
-        </div>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-value">3</div>
-            <div class="stat-label">Systems</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">0.006°</div>
-            <div class="stat-label">Sun accuracy</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">263</div>
-            <div class="stat-label">Test cases</div>
-          </div>
-        </div>
-      </section>
-
-      <section id="features">
-        <h2 class="section-title">What it does</h2>
-        <p class="section-lead">Not another isolated chart. A synthesis engine that treats three systems as one coherent signal.</p>
-        <div class="grid-3">
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">◉</div>
-            <h3>Human Design</h3>
-            <p>Full BodyGraph — 9 centers, energy type, authority, profile lines 1–6, all 64 gates with planetary activations, channels and PHS, rendered as SVG.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">◈</div>
-            <h3>Gene Keys</h3>
-            <p>All 64 keys across Shadow → Gift → Siddhi, assembled into a hologenetic profile with contemplation prompts.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">✦</div>
-            <h3>Millman Numerology</h3>
-            <p>Life path, master numbers, soul &amp; career paths, challenges, peaks by life stage and personal year — zero-amplifier logic included.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">✧</div>
-            <h3>AI Synthesis &amp; Coaching</h3>
-            <p>OpenAI · Anthropic · Google via backend proxy only. Socratic, cross-correlating all three systems. Results cached 30 days.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">◎</div>
-            <h3>Transits</h3>
-            <p>Daily planetary positions, natal comparison, date-range scans and moon phases — same precision ladder as natal charts.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon" aria-hidden="true">⬡</div>
-            <h3>Journal · PDF · Billing</h3>
-            <p>Server-side journal, PDF export of charts and reports, Stripe checkout, portal and webhooks.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="precision">
-        <h2 class="section-title">The precision ladder</h2>
-        <p class="section-lead">Astronomical accuracy is a product tier, not a marketing adjective. Two interchangeable providers behind one interface.</p>
-        <div class="precision-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">standard</th>
-                <th scope="col">swiss-professional</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Tiers</td>
-                <td>FREE · BASIC · guests</td>
-                <td>PREMIUM · PRO</td>
-              </tr>
-              <tr>
-                <td>Library</td>
-                <td>astronomia (Meeus)</td>
-                <td>Swiss Ephemeris (sweph)</td>
-              </tr>
-              <tr>
-                <td>License</td>
-                <td class="mono">MIT</td>
-                <td class="mono">AGPL / commercial</td>
-              </tr>
-              <tr>
-                <td>Accuracy</td>
-                <td class="mono">Sun 0.0059° · Moon 0.0152°</td>
-                <td class="mono">±0.0001° (reference)</td>
-              </tr>
-              <tr>
-                <td>Chiron</td>
-                <td>not available (explicit)</td>
-                <td>included</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="precision-note">
-          Measured against a Swiss Ephemeris fixture across 10 dates 1950–2030.
-          A Human Design gate spans 5.625° — the standard provider’s worst case is ~370× narrower.
-        </p>
-      </section>
-
-      <section id="architecture">
-        <h2 class="section-title">Why this is not another astrology app</h2>
-        <p class="section-lead">Most projects ship one system and claim “precise” without a number. This one is built the other way around.</p>
-        <div class="grid-3">
-          <div class="card">
-            <h3>Three systems, one synthesis</h3>
-            <p>Not isolated readings. Cross-correlation into a single coherent profile that an LLM can reason across.</p>
-          </div>
-          <div class="card">
-            <h3>Measured error table</h3>
-            <p>Automated tests assert accuracy against a Swiss Ephemeris fixture on every CI run — not a one-time claim.</p>
-          </div>
-          <div class="card">
-            <h3>License-isolated providers</h3>
-            <p>CI fails the build if AGPL ephemeris code reaches the standard image. Professional tier is opt-in.</p>
-          </div>
-          <div class="card">
-            <h3>Server recomputes everything</h3>
-            <p>Any endpoint that persists a chart recomputes it server-side. Client-submitted numbers are never trusted.</p>
-          </div>
-          <div class="card">
-            <h3>Honest data-flow</h3>
-            <p>Earlier “data never leaves your device” claim was retracted after the web pivot. Transparency over marketing.</p>
-          </div>
-          <div class="card">
-            <h3>Tokens never in storage</h3>
-            <p>Automated tests assert access tokens and API keys are never written to browser storage.</p>
-          </div>
-        </div>
-      </section>
-
-      <div class="cta-block">
-        <h2>Interested in the engineering?</h2>
-        <p>
-          This repository is a public showcase of architecture, decisions and measured claims.
-          Source lives in a private repo. Collaborators, employers and investors welcome.
-        </p>
-        <a class="btn btn-primary" href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">
-          Open the showcase on GitHub
-        </a>
       </div>
-    </main>
 
-    <footer>
-      <p>
-        Synthesis Engine · Showcase repository ·
-        <a href="https://github.com/deusexlumen/synthesis-engine-showcase" target="_blank" rel="noopener">GitHub</a>
-        · Human Design · Gene Keys · Dan Millman numerology
-      </p>
-    </footer>
+      <div style="position: absolute; z-index: 3; right: clamp(10px, 2.4vw, 38px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 14px; align-items: flex-end; opacity: {{ railOpacity }};">
+        <sc-for list="{{ rail }}" as="r" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent-200); opacity: {{ r.labelOpacity }}; white-space: nowrap;">{{ r.label }}</span>
+            <span style="width: 26px; height: 2px; background: var(--color-accent); opacity: {{ r.opacity }};"></span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="{{ heroTextStyle }}">
+        <div style="position: relative; min-height: 280px;">
+          <div style="position: absolute; inset: 0; opacity: {{ stage0Opacity }}; transition: opacity 0.15s linear;">
+            <div style="font-size: 12px; letter-spacing: 0.16em; color: var(--color-accent-300); font-variant-numeric: tabular-nums; margin-bottom: var(--space-3);">{{ coordReadout }}</div>
+            <h1 style="font-size: clamp(34px, 5.4vw, 68px); line-height: 0.98; letter-spacing: -0.03em; margin: 0 0 var(--space-4); max-width: 13ch;">{{ t.heroL1 }}<br>{{ t.heroL2 }}<br><span style="color: var(--color-accent-300);">{{ t.heroL3 }}</span></h1>
+            <p style="font-size: 16px; opacity: 0.75; max-width: 40ch; margin: 0;">{{ t.heroSub }}</p>
+          </div>
+          <sc-for list="{{ heroStages }}" as="s" hint-placeholder-count="4">
+            <div style="position: absolute; inset: 0; opacity: {{ s.opacity }}; transition: opacity 0.15s linear;">
+              <h6 style="color: var(--color-accent);">{{ s.kicker }}</h6>
+              <h2 style="font-size: clamp(24px, 3.4vw, 38px); margin: var(--space-2) 0 var(--space-3);">{{ s.title }}</h2>
+              <p style="font-size: 16px; opacity: 0.78; max-width: 40ch;">{{ s.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position: absolute; bottom: var(--space-6); left: clamp(20px, 6vw, 96px); z-index: 3; opacity: {{ scrollHintOpacity }}; display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-500);">
+        <i class="ph ph-arrow-down"></i>
+        <span>{{ t.scrollHint }}</span>
+      </div>
+    </div>
   </div>
 
-  <div id="webgpu-fallback">WebGPU not available — static gradient. Use Chrome / Edge for the full spectacle.</div>
+  <section style="max-width: 1100px; margin: 0 auto; padding: clamp(72px, 10vw, 120px) clamp(20px, 5vw, 64px) 40px;">
+    <h6 style="color: var(--color-accent);">{{ t.whyKicker }}</h6>
+    <h2 style="font-size: clamp(26px, 3.4vw, 40px); max-width: 17ch; margin: var(--space-2) 0 var(--space-6);">{{ t.whyTitle }}</h2>
+    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <table class="table" style="min-width: 560px;">
+        <thead><tr><th>{{ t.whyColA }}</th><th>{{ t.whyColB }}</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ t.whyRows }}" as="row" hint-placeholder-count="4">
+            <tr><td style="opacity: 0.6;">{{ row.a }}</td><td>{{ row.b }}</td></tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.js",
-      "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.webgpu.js",
-      "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.tsl.js"
+  <section id="systeme" style="scroll-margin-top: 88px; max-width: 1100px; margin: 0 auto; padding: clamp(56px, 7vw, 80px) clamp(20px, 5vw, 64px);">
+    <h6 style="color: var(--color-accent);">{{ t.sysKicker }}</h6>
+    <h2 style="font-size: clamp(26px, 3.4vw, 40px); max-width: 19ch; margin: var(--space-2) 0 var(--space-6);">{{ t.sysTitle }}</h2>
+    <sc-for list="{{ t.systems }}" as="sys" hint-placeholder-count="3">
+      <div style="display: grid; grid-template-columns: clamp(52px, 8vw, 110px) 1fr; gap: clamp(16px, 3vw, 32px); padding: var(--space-6) var(--space-4); margin: 0 calc(-1 * var(--space-4)); align-items: start; border-top: 1px solid var(--color-divider); border-radius: var(--radius-md); transition: background 0.3s ease;" style-hover="background: color-mix(in srgb, var(--color-accent) 6%, transparent);">
+        <div style="font-size: clamp(32px, 5vw, 64px); font-variant-numeric: tabular-nums; color: var(--color-accent-800); line-height: 1;">{{ sys.n }}</div>
+        <div>
+          <h6 style="color: var(--color-accent);">{{ sys.kicker }}</h6>
+          <h3 style="font-size: clamp(20px, 2.4vw, 28px); margin: var(--space-1) 0 var(--space-2);">{{ sys.title }}</h3>
+          <p style="opacity: 0.75; max-width: 60ch; margin: 0; font-size: 15px;">{{ sys.body }}</p>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section id="genauigkeit" style="scroll-margin-top: 88px; background: linear-gradient(180deg, var(--color-section), var(--color-section-glow)); padding: clamp(64px, 9vw, 100px) clamp(20px, 5vw, 64px); margin-top: 40px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+      <h6 style="color: var(--color-accent-2-300);">{{ t.precKicker }}</h6>
+      <h2 style="font-size: clamp(26px, 3.4vw, 40px); max-width: 21ch; margin: var(--space-2) 0 var(--space-6);">{{ t.precTitle }}</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8);">
+        <sc-for list="{{ t.precStats }}" as="st" hint-placeholder-count="3">
+          <div>
+            <div style="font-family: var(--font-heading); font-size: clamp(30px, 4vw, 48px); color: var(--color-accent-100); line-height: 1.05;">{{ st.v }}</div>
+            <p style="opacity: 0.72; margin: var(--space-2) 0 0; font-size: 14px;">{{ st.l }}</p>
+          </div>
+        </sc-for>
+      </div>
+      <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <table class="table" style="min-width: 520px;">
+          <thead><tr><th></th><th>{{ t.precColA }}</th><th>{{ t.precColB }}</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ t.precRows }}" as="row" hint-placeholder-count="3">
+              <tr><td style="opacity: 0.6;">{{ row.k }}</td><td>{{ row.a }}</td><td>{{ row.b }}</td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <p style="opacity: 0.68; font-size: 13px; max-width: 62ch; margin-top: var(--space-4);">{{ t.precNote }}</p>
+    </div>
+  </section>
+
+  <section id="architektur" style="scroll-margin-top: 88px; max-width: 1100px; margin: 0 auto; padding: clamp(64px, 9vw, 100px) clamp(20px, 5vw, 64px);">
+    <h6 style="color: var(--color-accent);">{{ t.archKicker }}</h6>
+    <h2 style="font-size: clamp(26px, 3.4vw, 40px); max-width: 21ch; margin: var(--space-2) 0 var(--space-6);">{{ t.archTitle }}</h2>
+    <div style="background: var(--color-surface); border-radius: var(--radius-md); padding: clamp(14px, 3vw, 28px); overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <div style="min-width: 540px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums;">
+        <sc-for list="{{ t.archRows }}" as="row" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: 28px minmax(180px, auto) 1fr 80px; gap: var(--space-4); padding: var(--space-3) var(--space-2); border-top: 1px solid var(--color-divider); border-radius: var(--radius-sm); transition: background 0.25s ease;" style-hover="background: color-mix(in srgb, var(--color-accent) 7%, transparent);">
+            <div style="color: var(--color-neutral-600);">{{ row.n }}</div>
+            <div style="color: var(--color-accent-300);">{{ row.call }}</div>
+            <div style="opacity: 0.7;">{{ row.desc }}</div>
+            <div style="opacity: 0.45; text-align: right;">{{ row.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <p style="opacity: 0.68; font-size: 13px; margin-top: var(--space-4); max-width: 62ch;">{{ t.archNote }}</p>
+  </section>
+
+  <section id="kontakt" style="scroll-margin-top: 88px; max-width: 760px; margin: 0 auto; padding: clamp(56px, 8vw, 80px) clamp(20px, 5vw, 64px) clamp(80px, 12vw, 140px);">
+    <h6 style="color: var(--color-accent);">{{ t.ctaKicker }}</h6>
+    <h2 style="font-size: clamp(24px, 3.2vw, 36px); max-width: 20ch; margin: var(--space-2) 0 var(--space-4);">{{ t.ctaTitle }}</h2>
+    <p style="opacity: 0.78; max-width: 50ch; margin: 0 0 var(--space-6);">{{ t.ctaBody }}</p>
+    <a href="{{ mailtoHref }}" class="btn btn-primary" style="font-size: 15px; padding: 12px 20px;">
+      <i class="ph ph-envelope-simple" style="margin-right: 8px;"></i>deusexlumen@airmail.cc
+    </a>
+    <p style="opacity: 0.55; font-size: 13px; margin-top: var(--space-4); max-width: 52ch;">{{ t.ctaNote }}</p>
+  </section>
+
+  <footer style="max-width: 1100px; margin: 0 auto; padding: 40px clamp(20px, 5vw, 64px) 60px; border-top: 1px solid var(--color-divider); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); font-size: 12px; opacity: 0.55;">
+    <span>{{ t.footA }}</span>
+    <span>{{ t.footB }}</span>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;de&quot;,&quot;en&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'de' | 'en'&quot;}}">
+/* Procedural galaxy-sky GLSL, adapted from the threejs-webgpu-spectacle skill's
+   lensed-celestial-spheres reference. */
+const CELESTIAL_SPHERES_GLSL = `
+uniform vec3  uSunDir, uSaturnDir, uSaturnAxis;
+uniform vec3  uPoleN, uCoreN, uPoleF, uCoreF;
+const float PI = 3.141592653589793;
+float hash13(vec3 p){ p = fract(p*0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y)*p.z); }
+vec3 hash33(vec3 p){ p = fract(p*vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yxz + 33.33); return fract((p.xxy + p.yxx)*p.zyx); }
+float vnoise(vec3 p){
+  vec3 i = floor(p), f = fract(p);
+  f = f*f*(3.0 - 2.0*f);
+  float a = mix(mix(mix(hash13(i+vec3(0,0,0)), hash13(i+vec3(1,0,0)), f.x),
+                    mix(hash13(i+vec3(0,1,0)), hash13(i+vec3(1,1,0)), f.x), f.y),
+                mix(mix(hash13(i+vec3(0,0,1)), hash13(i+vec3(1,0,1)), f.x),
+                    mix(hash13(i+vec3(0,1,1)), hash13(i+vec3(1,1,1)), f.x), f.y), f.z);
+  return a;
+}
+float fbm(vec3 p, int oct){
+  float amp = 0.5, sum = 0.0, tot = 0.0;
+  for (int i = 0; i < 6; i++){
+    if (i >= oct) break;
+    sum += amp*vnoise(p); tot += amp;
+    p *= 2.03; amp *= 0.5;
+  }
+  return sum/max(tot, 1e-4);
+}
+float ridged(vec3 p, int oct){
+  float amp = 0.5, sum = 0.0, tot = 0.0;
+  for (int i = 0; i < 6; i++){
+    if (i >= oct) break;
+    float n = 1.0 - abs(2.0*vnoise(p) - 1.0);
+    sum += amp*n*n; tot += amp;
+    p = p*2.11 + 7.3; amp *= 0.55;
+  }
+  return sum/max(tot, 1e-4);
+}
+vec3 warp3(vec3 p, float k, float s){
+  return p + k*vec3(fbm(p + s, 2), fbm(p + s + 19.7, 2), fbm(p + s + 41.3, 2));
+}
+vec3 blackbody(float T){
+  float t = clamp(T, 1700.0, 30000.0)*0.01;
+  float r, g, b;
+  if (t <= 66.0){ r = 255.0;                                      g = 99.4708025861*log(t) - 161.1195681661; }
+  else          { r = 329.698727446*pow(t - 60.0, -0.1332047592); g = 288.1221695283*pow(t - 60.0, -0.0755148492); }
+  if      (t >= 66.0) b = 255.0;
+  else if (t <= 19.0) b = 0.0;
+  else                b = 138.5177312231*log(t - 10.0) - 305.0447927307;
+  vec3 c = clamp(vec3(r, g, b)/255.0, 0.0, 1.0);
+  return c/max(dot(c, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
+}
+const float U_MIN = 0.0016;
+const float S0    = 0.00030;
+vec3 faceDirOf(float face, vec2 uv){
+  vec3 v;
+  if      (face < 1.5) v = vec3(1.0, uv.x, uv.y);
+  else if (face < 3.5) v = vec3(uv.x, 1.0, uv.y);
+  else                 v = vec3(uv.x, uv.y, 1.0);
+  return normalize((mod(face, 2.0) < 0.5 ? 1.0 : -1.0)*v);
+}
+float discDens(vec3 dir, vec3 pole, vec3 core, float h){
+  float sb  = dot(dir, pole);
+  float lon = 0.42 + 0.58*smoothstep(-0.55, 0.95, dot(dir, core));
+  return 0.34 + 1.72*exp(-0.5*sb*sb/(h*h))*lon;
+}
+vec3 starLayer(vec3 D, float foot, float cells, float baseDens, float lum, float seed,
+               vec3 pole, vec3 core, float scaleH){
+  vec3 ad = abs(D);
+  float ma = max(ad.x, max(ad.y, ad.z));
+  vec2 uv; float face;
+  if      (ma == ad.x) { uv = D.yz/D.x; face = D.x > 0.0 ? 0.0 : 1.0; }
+  else if (ma == ad.y) { uv = D.xz/D.y; face = D.y > 0.0 ? 2.0 : 3.0; }
+  else                 { uv = D.xy/D.z; face = D.z > 0.0 ? 4.0 : 5.0; }
+  float cellAng = 1.0/cells;
+  float s  = clamp(max(S0, 0.62*foot), S0, 0.5*cellAng);
+  float k  = (S0*S0)/(s*s);
+  float i2 = 1.0/(s*s);
+  vec2 gi = floor(uv*cells);
+  vec3 sum = vec3(0.0);
+  for (int j = -1; j <= 1; j++){
+    for (int i = -1; i <= 1; i++){
+      vec2 cell = gi + vec2(float(i), float(j));
+      vec3 h  = hash33(vec3(cell, face*17.0 + seed));
+      vec3 sd = faceDirOf(face, (cell + h.xy)*cellAng);
+      if (h.z > min(baseDens*discDens(sd, pole, core, scaleH), 1.0)) continue;
+      vec3  dp = D - sd;
+      float d2 = dot(dp, dp);
+      vec3  h2 = hash33(vec3(cell + 91.7, face*17.0 + seed + 5.0));
+      float u     = max(h2.x, U_MIN);
+      float giant = step(0.972, h2.z);
+      float flux  = lum*pow(u, -0.6666667)*mix(1.0, 2.3, giant);
+      float I     = flux*k*(exp(-0.5*d2*i2) + 0.005*exp(-d2*i2/18.0));
+      if (I < 2.0e-4) continue;
+      float ts = clamp(0.62*pow(h2.y, 6.5) + 0.38*(1.0 - pow(u, 0.30)), 0.0, 1.0);
+      ts = mix(ts, 0.015 + 0.05*h2.y, giant);
+      vec3  cc = blackbody(mix(2700.0, 24000.0, ts));
+      sum += I*mix(vec3(1.0), cc, clamp(0.35 + 0.55*log2(1.0 + flux*6.0), 0.35, 1.0));
     }
   }
-  </script>
-
-  <script type="module">
-    /**
-     * Synthesis Engine Landing — WebGPU Spectacle
-     * Built with threejs-webgpu-spectacle skill principles:
-     * projected accretion + photon ring + multi-layer star field + nebula
-     */
-    import * as THREE from 'three/webgpu';
-    import {
-      float, vec2, vec3, vec4, uniform,
-      uv, sin, cos, abs, length, normalize, mix,
-      smoothstep, pow, exp, max, fract, floor, Fn
-    } from 'three/tsl';
-
-    const container = document.getElementById('canvas-container');
-    const loader = document.getElementById('loader');
-    const fallbackEl = document.getElementById('webgpu-fallback');
-
-    let renderer, camera, scene;
-    let mouseX = 0, mouseY = 0;
-    let targetX = 0, targetY = 0;
-
-    function hideLoader() {
-      loader.classList.add('hidden');
+  float meanFlux = lum*2.78*1.036;
+  float meanDens = min(baseDens*discDens(D, pole, core, scaleH), 1.0);
+  vec3  meanRad  = vec3(0.98, 0.96, 1.00)*(meanDens*meanFlux*1.045*6.2831853*S0*S0*cells*cells);
+  return mix(sum, meanRad, smoothstep(0.30, 1.25, foot*cells));
+}
+vec3 galaxySky(vec3 D, float foot, float detail,
+               vec3 pole, vec3 core, float seed, float scaleH,
+               float dustAmp, float glowAmp, float nebAmp,
+               vec3 cCool, vec3 cWarm, vec3 cEmis, vec3 cRefl,
+               float sDens, float sLum){
+  float sb    = dot(D, pole);
+  float cd    = dot(D, core);
+  float lon   = 0.42 + 0.58*smoothstep(-0.55, 0.95, cd);
+  float disc  = exp(-0.5*sb*sb/(scaleH*scaleH));
+  float hd    = scaleH*0.55;
+  float dpl   = exp(-0.5*sb*sb/(hd*hd));
+  float bulge = pow(max(cd, 0.0), 3.2)*exp(-0.5*sb*sb/(0.11*0.11));
+  vec3  qd   = warp3(D*2.6 + seed, 0.55, 3.1);
+  float fil  = ridged(qd*1.7, 5);
+  float bulk = smoothstep(0.28, 0.80, fbm(D*1.9 + seed*1.7, 4));
+  float tau  = dustAmp*dpl*lon*(0.30*bulk + 1.25*smoothstep(0.34, 0.88, fil)*(0.35 + 0.65*bulk));
+  vec3  ext  = exp(-tau*vec3(1.00, 1.24, 1.52));
+  vec3  qm    = warp3(D*3.4 + seed*0.9, 0.34, 11.3);
+  float clump = 0.50 + 0.85*fbm(qm*1.1, 5);
+  float milky = disc*lon*clump + 1.9*bulge;
+  vec3  c = glowAmp*milky*mix(cCool, cWarm,
+              clamp(0.04 + 1.3*bulge + 0.85*(clump - 0.66), 0.0, 1.0))*ext;
+  float region = smoothstep(0.44, 0.80, fbm(D*1.3 + seed*2.1, 3));
+  vec3  qn   = warp3(D*4.2 - seed*1.3, 0.70, 23.9);
+  float hii  = region*smoothstep(0.50, 0.92, ridged(qn*1.25, 4));
+  float knot = region*smoothstep(0.70, 0.98, ridged(qn*3.1 + 5.0, 3))*detail;
+  float refl = smoothstep(0.48, 0.88, fbm(qn*0.8 + 31.0, 4))*(0.25 + 0.75*region);
+  float oiii = smoothstep(0.40, 0.74, fbm(D*2.2 + seed*3.7, 3));
+  vec3  cIon = mix(cEmis, vec3(0.20, 0.78, 0.66), oiii*0.5);
+  float host = 0.22 + 0.78*disc*lon;
+  c += nebAmp*host*(cIon*(hii + 1.9*knot) + cRefl*(1.10*refl + 0.25*hii))*sqrt(ext);
+  c += starLayer(D, foot,  30.0, 0.46*sDens, 0.60*sLum, seed +  1.0, pole, core, scaleH)*mix(vec3(1.0), ext, 0.40);
+  c += starLayer(D, foot, 104.0, 0.34*sDens, 0.18*sLum, seed + 11.0, pole, core, scaleH)*mix(vec3(1.0), ext, 0.75);
+  c += starLayer(D, foot, 300.0, 0.22*sDens, 0.055*sLum, seed + 23.0, pole, core, scaleH)*ext;
+  return c;
+}
+float ringDensity(float rad, float e){
+  float d = 0.0;
+  d += smoothstep(1.12, 1.20 + e, rad)*(1.0 - smoothstep(1.49, 1.53 + e, rad))*0.30;
+  d += smoothstep(1.52, 1.57 + e, rad)*(1.0 - smoothstep(1.91, 1.95 + e, rad))*0.95;
+  d += smoothstep(2.02, 2.06 + e, rad)*(1.0 - smoothstep(2.23, 2.27 + e, rad))*0.66;
+  d *= 0.86 + 0.14*sin(rad*173.0);
+  d *= mix(0.18, 1.0, smoothstep(0.0, 0.006 + e, abs(rad - 2.214)));
+  return clamp(d, 0.0, 1.0);
+}
+vec4 saturnRender(vec3 D, float foot){
+  float ang = 0.052;
+  vec3  C   = uSaturnDir;
+  float R   = sin(ang);
+  float w   = max(foot, 2.0e-4);
+  float bq   = dot(D, C);
+  float disc = bq*bq - (1.0 - R*R);
+  float tS   = 1e9;
+  float dAng = acos(clamp(bq, -1.0, 1.0));
+  float aP   = (bq > 0.0) ? 1.0 - smoothstep(ang - w, ang + w, dAng) : 0.0;
+  vec3  cP   = vec3(0.0);
+  if (aP > 0.001){
+    tS = bq - sqrt(max(disc, 0.0));
+    vec3  N    = normalize(tS*D - C);
+    float lat  = clamp(dot(N, uSaturnAxis), -1.0, 1.0);
+    float la   = asin(lat);
+    float turb = fbm(N*6.0 + vec3(0.0, la*3.0, 0.0), 4);
+    float band = 0.5 + 0.5*sin(la*17.0 + turb*2.6 + sin(la*41.0)*0.5);
+    vec3  base = mix(vec3(0.68, 0.55, 0.37), vec3(0.93, 0.85, 0.68), band);
+    base = mix(base, vec3(0.56, 0.53, 0.47), smoothstep(0.55, 1.0, abs(lat)));
+    float ndl  = max(dot(N, uSunDir), 0.0);
+    float limb = pow(max(dot(N, -D), 0.0), 0.35);
+    cP = base*(ndl*1.25*limb + 0.012);
+  }
+  float aR = 0.0; vec3 cR = vec3(0.0); float tR = -1.0;
+  float dn = dot(D, uSaturnAxis);
+  if (abs(dn) > 1e-6){
+    tR = dot(C, uSaturnAxis)/dn;
+    if (tR > 0.0){
+      vec3  q   = tR*D - C;
+      float rad = length(q)/R;
+      float e   = clamp(foot/max(ang, 1e-4), 0.0, 0.35);
+      aR = ringDensity(rad, e);
+      if (aR > 0.001){
+        float proj = dot(q, uSunDir);
+        float perp = length(q - proj*uSunDir);
+        float shad = (proj < 0.0) ? mix(0.10, 1.0, smoothstep(R*0.92, R*1.08, perp)) : 1.0;
+        cR = mix(vec3(0.70, 0.62, 0.48), vec3(0.97, 0.92, 0.82),
+                 smoothstep(1.5, 2.1, rad))*shad*0.95;
+      } else aR = 0.0;
     }
+  }
+  vec3  front_c; float front_a; vec3 back_c; float back_a;
+  if (tR > 0.0 && tR < tS){ front_c = cR; front_a = aR; back_c = cP; back_a = aP; }
+  else                    { front_c = cP; front_a = aP; back_c = cR; back_a = aR; }
+  vec3  pre = front_c*front_a + back_c*back_a*(1.0 - front_a);
+  float cov = front_a + back_a*(1.0 - front_a);
+  return vec4(pre, clamp(cov, 0.0, 1.0));
+}
+vec3 skyNear(vec3 D, float foot){
+  float detail = 1.0 - smoothstep(0.0035, 0.028, foot);
+  vec3 c = galaxySky(D, foot, detail, uPoleN, uCoreN, 0.0, 0.185,
+                     1.35, 0.160, 0.048,
+                     vec3(0.50, 0.62, 0.94), vec3(1.00, 0.90, 0.72),
+                     vec3(0.95, 0.26, 0.22), vec3(0.30, 0.48, 0.95),
+                     1.0, 1.0);
+  const float sunR = 0.0050;
+  float sunD = length(D - uSunDir);
+  float sunS = 1.2*max(foot, 1.0e-5);
+  float sunQ = max(sunD - sunR, 0.0);
+  c += vec3(1.00, 0.97, 0.92)*420.0
+       *((sunR*sunR)/(sunR*sunR + 2.5066283*sunR*sunS + 2.0*sunS*sunS))
+       *exp(-0.5*sunQ*sunQ/(sunS*sunS));
+  c += vec3(1.00, 0.95, 0.88)*0.55*exp(-sunD*sunD/(2.0*0.0333*0.0333));
+  vec4 s = saturnRender(D, foot);
+  return c*(1.0 - s.a) + s.rgb;
+}
+`;
 
-    async function init() {
-      try {
-        renderer = new THREE.WebGPURenderer({ antialias: true, alpha: false });
-        await renderer.init();
-      } catch (err) {
-        console.warn('[Synthesis] WebGPU unavailable:', err);
-        fallbackEl.style.display = 'block';
-        container.style.background =
-          'radial-gradient(ellipse at 50% 28%, #1a0a2e 0%, #0a0614 45%, #05050a 100%)';
-        hideLoader();
-        return;
-      }
+const COPY = {
+  de: {
+    navSystems: 'Systeme', navPrecision: 'Genauigkeit', navArchitecture: 'Architektur', navContact: 'Kontakt',
+    heroL1: 'Ein Geburtsmoment.', heroL2: 'Drei Systeme.', heroL3: 'Eine Synthese.',
+    heroSub: 'Human Design, Gene Keys und Millman-Numerologie — aus denselben Planetenpositionen, von einer KI gemeinsam gelesen.',
+    scrollHint: 'Scrollen — Live-Ephemeride',
+    stages: [
+      { kicker: 'Human Design', title: '9 Zentren. 64 Tore. Ein BodyGraph.', body: 'Energietyp, Autorität und Profil — aus den exakten Planetenständen deiner Geburt gezeichnet, nicht aus einer Tabelle geraten.' },
+      { kicker: 'Gene Keys', title: '64 Schlüssel. Schatten zu Gabe zu Siddhi.', body: 'Dasselbe Chart, als hologenetisches Profil gelesen — mit Kontemplations-Impulsen statt fertiger Antworten.' },
+      { kicker: 'Millman-Numerologie', title: 'Lebenspfad. Seelenpfad. Karrierepfad.', body: 'Aus Geburtsdatum und -namen — dieselben Daten, ein drittes System, eine dritte Perspektive auf denselben Menschen.' },
+      { kicker: 'Synthesis', title: 'Eine KI, die alle drei gleichzeitig liest.', body: 'Kein System isoliert — eine Stimme, die zwischen BodyGraph, Gene Keys und Lebenspfad Zusammenhänge zieht.' },
+    ],
+    railLabels: ['Synthese', 'Human Design', 'Gene Keys', 'Numerologie', 'Synthesis'],
+    whyKicker: 'Warum anders',
+    whyTitle: 'Die meisten Apps behaupten Präzision. Diese zeigt sie.',
+    whyColA: 'Üblich', whyColB: 'Hier',
+    whyRows: [
+      { a: 'Ein System, isoliert betrachtet', b: 'Drei Systeme, zu einer Synthese verbunden' },
+      { a: '„Hochpräzise" — ohne Zahl', b: 'Ein gemessener Fehlerwert, geprüft gegen eine anerkannte Referenz-Ephemeride' },
+      { a: 'Rechnet dem Client blind hinterher', b: 'Jede gespeicherte Berechnung wird serverseitig neu verifiziert' },
+      { a: 'Ein pauschales Datenschutz-Versprechen', b: 'Eine ehrliche Aussage, wohin deine Daten tatsächlich fließen' },
+    ],
+    sysKicker: 'Die drei Systeme',
+    sysTitle: 'Ein Geburtsmoment, aus drei Blickwinkeln gelesen.',
+    systems: [
+      { n: '01', kicker: 'Human Design', title: 'BodyGraph', body: '9 Zentren, Energietyp (Manifestor, Generator, MG, Projector, Reflector), Autorität, Profil-Linien 1–6, alle 64 Tore mit planetaren Aktivierungen und Kanal-Analyse.' },
+      { n: '02', kicker: 'Gene Keys', title: 'Hologenetisches Profil', body: 'Alle 64 Keys über drei Frequenzen — Shadow, Gift, Siddhi — zusammengesetzt zu einem Profil mit Kontemplations-Impulsen.' },
+      { n: '03', kicker: 'Millman-Numerologie', title: 'Lebenspfad', body: 'Lebenspfad, Seelenpfad (Vokale), Karrierepfad (Konsonanten), Meisterzahlen, die vier Herausforderungen, Höhepunkte je Lebensphase, persönliches Jahr.' },
+    ],
+    precKicker: 'Genauigkeit als Produkt-Eigenschaft, nicht als Werbeversprechen',
+    precTitle: 'Deine Genauigkeit ist sichtbar — nicht nur behauptet.',
+    precStats: [
+      { v: '0,0059°', l: 'Abweichung der Sonnenposition, gemessen gegen eine Swiss-Ephemeris-Referenz' },
+      { v: '370×', l: 'schmaler als das kleinste Tor eines BodyGraphs (5,625°) — im ungünstigsten Fall' },
+      { v: '10', l: 'Testdaten von 1950 bis 2030 — jeder Lauf misst neu, nicht nur einmalig zur Implementierung' },
+    ],
+    precColA: 'Standard', precColB: 'Swiss Professional',
+    precRows: [
+      { k: 'Verfügbar für', a: 'Alle Konten', b: 'Premium · Pro' },
+      { k: 'Genauigkeit', a: 'Sonne 0,0059° · Mond 0,0152°', b: '0,0001° (Referenz)' },
+      { k: 'Rückläufigkeits-Erkennung', a: 'exakt in jeder Stichprobe', b: 'exakt in jeder Stichprobe' },
+    ],
+    precNote: 'Fehlt eine Komponente, fällt das System still auf die Standard-Genauigkeit zurück — jede Antwort trägt ihre eigene Herkunft sichtbar mit sich.',
+    archKicker: 'Architektur',
+    archTitle: 'Jede Berechnung läuft serverseitig — dein Browser rechnet nichts, dem man vertrauen müsste.',
+    archRows: [
+      { n: '01', call: 'POST /api/hd/calculate', desc: 'Geburtsdaten → Geocoding + Zeitzone im Frontend', tag: 'Client' },
+      { n: '02', call: 'rateLimit → auth → Zod', desc: '10 Anfragen/min, optionale Auth, Validierung', tag: 'Backend' },
+      { n: '03', call: 'resolveProvider(tier)', desc: 'standard | swiss-professional — wirft nie einen Fehler', tag: 'Resolver' },
+      { n: '04', call: 'Planetenlängen — natal + design', desc: 'Tore, Kanäle, Zentren, Typ, Autorität, Profil', tag: 'Ephemeris' },
+      { n: '05', call: '{ success, accuracy, data }', desc: 'BodyGraph + AccuracyBadge — nichts wird dem Client geglaubt', tag: 'Response' },
+    ],
+    archNote: 'Zwei austauschbare Ephemeriden-Anbieter hinter einer Schnittstelle — jede gespeicherte Berechnung wird serverseitig neu verifiziert.',
+    ctaKicker: 'Kontakt',
+    ctaTitle: 'Schreib mir direkt.',
+    ctaBody: 'Synthesis Engine ist feature-fertig und in aktiver Entwicklung. Kein Newsletter, keine Warteliste — eine Mailadresse. Ob du früh Zugang willst, mitbauen möchtest oder einen genaueren Blick auf den Code werfen willst: eine Mail genügt.',
+    ctaNote: 'Ich antworte persönlich, meist innerhalb weniger Tage.',
+    footA: 'Synthesis Engine — Human Design, Gene Keys und Millman-Numerologie, gemeinsam gelesen.',
+    footB: 'Human Design — Ra Uru Hu · Gene Keys — Richard Rudd · Numerologie — Dan Millman',
+    mailSubject: 'Synthesis Engine',
+  },
+  en: {
+    navSystems: 'Systems', navPrecision: 'Precision', navArchitecture: 'Architecture', navContact: 'Contact',
+    heroL1: 'One birth moment.', heroL2: 'Three systems.', heroL3: 'One synthesis.',
+    heroSub: 'Human Design, Gene Keys and Millman numerology — from the same planetary positions, read together by one AI.',
+    scrollHint: 'Scroll — live ephemeris',
+    stages: [
+      { kicker: 'Human Design', title: '9 centers. 64 gates. One BodyGraph.', body: 'Energy type, authority and profile — drawn from the exact planetary positions of your birth, not guessed from a lookup table.' },
+      { kicker: 'Gene Keys', title: '64 keys. Shadow to Gift to Siddhi.', body: 'The same chart read as a hologenetic profile — with contemplation prompts instead of finished answers.' },
+      { kicker: 'Millman numerology', title: 'Life path. Soul path. Career path.', body: 'From birth date and birth name — the same data, a third system, a third perspective on the same person.' },
+      { kicker: 'Synthesis', title: 'One AI reading all three at once.', body: 'No system in isolation — a single voice drawing connections between BodyGraph, Gene Keys and life path.' },
+    ],
+    railLabels: ['Synthesis', 'Human Design', 'Gene Keys', 'Numerology', 'Synthesis'],
+    whyKicker: 'Why this is different',
+    whyTitle: 'Most apps claim precision. This one shows it.',
+    whyColA: 'Usually', whyColB: 'Here',
+    whyRows: [
+      { a: 'One system, viewed in isolation', b: 'Three systems, joined into one synthesis' },
+      { a: '"Highly precise" — with no number', b: 'A measured error value, checked against a recognised reference ephemeris' },
+      { a: 'Blindly trusts whatever the client computed', b: 'Every stored calculation is re-verified server-side' },
+      { a: 'A blanket privacy promise', b: 'An honest statement of where your data actually goes' },
+    ],
+    sysKicker: 'The three systems',
+    sysTitle: 'One birth moment, read from three angles.',
+    systems: [
+      { n: '01', kicker: 'Human Design', title: 'BodyGraph', body: '9 centers, energy type (Manifestor, Generator, MG, Projector, Reflector), authority, profile lines 1–6, all 64 gates with planetary activations and channel analysis.' },
+      { n: '02', kicker: 'Gene Keys', title: 'Hologenetic profile', body: 'All 64 keys across three frequencies — Shadow, Gift, Siddhi — composed into a profile with contemplation prompts.' },
+      { n: '03', kicker: 'Millman numerology', title: 'Life path', body: 'Life path, soul path (vowels), career path (consonants), master numbers, the four challenges, peaks per life phase, personal year.' },
+    ],
+    precKicker: 'Precision as a product property, not a marketing line',
+    precTitle: 'Your accuracy is visible — not merely asserted.',
+    precStats: [
+      { v: '0.0059°', l: 'solar position error, measured against a Swiss Ephemeris reference' },
+      { v: '370×', l: 'narrower than the smallest gate of a BodyGraph (5.625°) — in the worst case' },
+      { v: '10', l: 'test dates from 1950 to 2030 — every run measures anew, not once at implementation time' },
+    ],
+    precColA: 'Standard', precColB: 'Swiss Professional',
+    precRows: [
+      { k: 'Available to', a: 'All accounts', b: 'Premium · Pro' },
+      { k: 'Accuracy', a: 'Sun 0.0059° · Moon 0.0152°', b: '0.0001° (reference)' },
+      { k: 'Retrograde detection', a: 'exact in every sample', b: 'exact in every sample' },
+    ],
+    precNote: 'If a component is missing, the system falls back quietly to standard accuracy — every response carries its own provenance visibly with it.',
+    archKicker: 'Architecture',
+    archTitle: 'Every calculation runs server-side — your browser computes nothing anyone would have to trust.',
+    archRows: [
+      { n: '01', call: 'POST /api/hd/calculate', desc: 'birth data → geocoding + timezone in the frontend', tag: 'Client' },
+      { n: '02', call: 'rateLimit → auth → Zod', desc: '10 requests/min, optional auth, validation', tag: 'Backend' },
+      { n: '03', call: 'resolveProvider(tier)', desc: 'standard | swiss-professional — never throws', tag: 'Resolver' },
+      { n: '04', call: 'planetary longitudes — natal + design', desc: 'gates, channels, centers, type, authority, profile', tag: 'Ephemeris' },
+      { n: '05', call: '{ success, accuracy, data }', desc: 'BodyGraph + AccuracyBadge — nothing is taken on the client\u2019s word', tag: 'Response' },
+    ],
+    archNote: 'Two interchangeable ephemeris providers behind one interface — every stored calculation is re-verified server-side.',
+    ctaKicker: 'Contact',
+    ctaTitle: 'Write to me directly.',
+    ctaBody: 'Synthesis Engine is feature-complete and in active development. No newsletter, no waitlist — one mail address. Whether you want early access, want to build along, or want a closer look at the code: one mail is enough.',
+    ctaNote: 'I reply personally, usually within a few days.',
+    footA: 'Synthesis Engine — Human Design, Gene Keys and Millman numerology, read together.',
+    footB: 'Human Design — Ra Uru Hu · Gene Keys — Richard Rudd · Numerology — Dan Millman',
+    mailSubject: 'Synthesis Engine',
+  },
+};
 
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setClearColor(0x05050a);
-      container.appendChild(renderer.domElement);
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+    this.wrapperRef = React.createRef();
+    this.rafId = null;
+    this.three = null;
+    this.smoothProgress = 0;
+    this.inView = true;
+    this.reducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1440;
+    let lang = props.lang === 'en' ? 'en' : 'de';
+    try {
+      const saved = localStorage.getItem('se-lang');
+      if (saved === 'de' || saved === 'en') lang = saved;
+      else if (!props.lang && typeof navigator !== 'undefined' && !/^de/i.test(navigator.language || '')) lang = 'en';
+    } catch (e) { /* storage unavailable */ }
+    this.state = {
+      progress: this.reducedMotion ? 1 : 0,
+      lang,
+      narrow: w < 860,
+      phone: w < 640,
+    };
+    this.geom = this.buildGeometry();
+  }
 
-      camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-      scene = new THREE.Scene();
-
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute(
-        'position',
-        new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3)
-      );
-
-      const uMouse = uniform(new THREE.Vector2(0, 0));
-      const uRes = uniform(new THREE.Vector2(window.innerWidth, window.innerHeight));
-      const uTime = uniform(0);
-
-      const material = new THREE.MeshBasicNodeMaterial();
-
-      material.colorNode = Fn(() => {
-        const aspect = uRes.x.div(uRes.y);
-        const uv0 = uv().sub(0.5).mul(vec2(aspect, float(1.0))).mul(2.0);
-        const m = uMouse.mul(0.11);
-        const p = uv0.add(m);
-
-        const t = uTime.mul(0.1);
-
-        // Slow orbital drift
-        const ang = t.mul(0.12);
-        const ca = cos(ang);
-        const sa = sin(ang);
-        const px = p.x.mul(ca).sub(p.y.mul(sa.mul(0.28)));
-        const py = p.y.mul(cos(ang.mul(0.65))).add(0.06);
-
-        const d = length(vec2(px, py));
-
-        // ——— Accretion disk ———
-        const diskInner = float(0.3);
-        const diskOuter = float(1.12);
-        const diskMask = smoothstep(diskOuter, diskOuter.sub(0.22), d)
-          .mul(smoothstep(diskInner.sub(0.07), diskInner, d));
-        const thickness = exp(float(-16.0).mul(abs(py).mul(1.7)));
-        const disk = diskMask.mul(thickness);
-
-        const heat = float(1.0).sub(smoothstep(diskInner, diskOuter, d));
-        const diskCol = mix(
-          vec3(0.5, 0.1, 0.82),
-          vec3(1.0, 0.78, 0.38),
-          heat.mul(heat)
-        ).mul(heat.mul(2.3).add(0.5));
-
-        const doppler = px.mul(0.42).add(1.0);
-        const diskEmit = diskCol.mul(disk).mul(doppler);
-
-        // Photon ring
-        const ring = exp(float(-26.0).mul(abs(d.sub(0.36)))).mul(0.5);
-        const ringCol = vec3(1.0, 0.84, 0.48).mul(ring);
-
-        // Dark core
-        const core = smoothstep(0.26, 0.1, d);
-        const coreDark = float(1.0).sub(core.mul(0.9));
-
-        // ——— Star field ———
-        const starDir = normalize(vec3(px, py, float(1.35)));
-
-        const hash3 = (v) => {
-          const q = fract(v.mul(vec3(0.1031, 0.1030, 0.0973)));
-          return fract(q.x.add(q.y).mul(q.z.add(33.33)));
-        };
-
-        const sc1 = floor(starDir.mul(40.0));
-        const sf1 = fract(starDir.mul(40.0));
-        const sh1 = hash3(sc1);
-        const bright = smoothstep(0.016, 0.0, length(sf1.sub(0.5)))
-          .mul(smoothstep(0.92, 1.0, sh1));
-
-        const sc2 = floor(starDir.mul(105.0));
-        const sf2 = fract(starDir.mul(105.0));
-        const sh2 = hash3(sc2.add(19.0));
-        const faint = smoothstep(0.028, 0.0, length(sf2.sub(0.5)))
-          .mul(smoothstep(0.8, 1.0, sh2))
-          .mul(0.38);
-
-        const stars = vec3(0.88, 0.92, 1.0).mul(bright.mul(2.1).add(faint));
-
-        // Nebula
-        const n1 = abs(sin(starDir.x.mul(2.6).add(starDir.y.mul(1.8)).add(t.mul(0.35))));
-        const n2 = abs(sin(starDir.x.mul(1.2).sub(starDir.y.mul(2.3)).add(t.mul(0.22))));
-        const neb = pow(n1.mul(n2), float(2.4)).mul(0.13);
-        const nebCol = vec3(0.48, 0.16, 0.88).mul(neb);
-
-        // Compose
-        const vignette = float(1.0).sub(length(p).mul(0.3));
-        let col = diskEmit.add(ringCol).add(stars).add(nebCol).toVar();
-        col.mulAssign(coreDark);
-        col.mulAssign(vignette.mul(1.1));
-        col.addAssign(vec3(0.012, 0.006, 0.03));
-
-        // Filmic
-        col.assign(col.div(col.add(1.0)));
-        col.assign(pow(col, vec3(0.9)));
-
-        return vec4(col, 1.0);
-      })();
-
-      const mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
-
-      window.addEventListener('pointermove', (e) => {
-        targetX = (e.clientX / window.innerWidth) * 2 - 1;
-        targetY = -(e.clientY / window.innerHeight) * 2 + 1;
-      });
-
-      window.addEventListener('resize', () => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        renderer.setSize(w, h);
-        uRes.value.set(w, h);
-      });
-
-      const clock = new THREE.Clock();
-
-      function animate() {
-        requestAnimationFrame(animate);
-        uTime.value = clock.getElapsedTime();
-        mouseX += (targetX - mouseX) * 0.035;
-        mouseY += (targetY - mouseY) * 0.035;
-        uMouse.value.set(mouseX, mouseY);
-        renderer.render(scene, camera);
-      }
-
-      animate();
-      // Small delay so first frame is painted
-      requestAnimationFrame(() => {
-        setTimeout(hideLoader, 180);
-      });
+  buildGeometry() {
+    const cx = 230, cy = 230;
+    const pt = (a, r) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    const active = new Set([1, 4, 11, 14, 20, 26, 33, 41, 47, 52, 58, 62]);
+    let ring = '', ringActive = '';
+    for (let i = 0; i < 64; i++) {
+      const a = (i / 64) * Math.PI * 2 - Math.PI / 2;
+      const hot = active.has(i);
+      const [x1, y1] = pt(a, hot ? 188 : 196);
+      const [x2, y2] = pt(a, hot ? 214 : 207);
+      const seg = `M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+      if (hot) ringActive += seg; else ring += seg;
     }
+    let spiral = '';
+    for (let i = 0; i <= 260; i++) {
+      const t = i / 260;
+      const a = t * Math.PI * 2 * 2.6 - Math.PI / 2;
+      const [x, y] = pt(a, 44 + t * 108);
+      spiral += (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+    }
+    let synth = '';
+    [[230, 62], [375, 314], [85, 314]].forEach(([x, y]) => { synth += `M${x} ${y}L${cx} ${cy}`; });
+    const channelPath = 'M130 52L130 70M130 110L130 128M130 168L130 175M156 148L178 205M104 148L62 240M156 148L198 240M130 235L130 260M112 228L78 248M148 228L182 248M178 222L156 262M78 256L104 272M182 256L156 272M130 300L130 340M64 268L104 344M196 268L156 344';
+    return { ring, ringActive, spiral, synth, channelPath };
+  }
 
-    init().catch((e) => {
-      console.error(e);
-      hideLoader();
-      fallbackEl.style.display = 'block';
+  async componentDidMount() {
+    if (typeof document !== 'undefined') document.documentElement.lang = this.state.lang;
+    await this.initThree();
+    window.addEventListener('resize', this.onResize);
+    document.addEventListener('visibilitychange', this.onVisibility);
+    if (this.reducedMotion) { this.renderFrame(1); return; }
+    this.observer = new IntersectionObserver((entries) => {
+      this.inView = entries[0].isIntersecting;
+      if (this.inView && !this.rafId) this.loop();
+    }, { threshold: 0 });
+    if (this.wrapperRef.current) this.observer.observe(this.wrapperRef.current);
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.loop();
+  }
+
+  onVisibility = () => {
+    if (document.hidden) {
+      if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+    } else if (this.inView && !this.reducedMotion && !this.rafId) {
+      this.loop();
+    }
+  };
+
+  componentWillUnmount() {
+    document.removeEventListener('visibilitychange', this.onVisibility);
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('scroll', this.onScroll);
+    if (this.observer) this.observer.disconnect();
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.disposeThree();
+  }
+
+  onResize = () => {
+    this.resizeThree();
+    this.renderFrame(this.smoothProgress);
+    const narrow = window.innerWidth < 860;
+    const phone = window.innerWidth < 640;
+    if (narrow !== this.state.narrow || phone !== this.state.phone) this.setState({ narrow, phone });
+  };
+
+  getRawProgress() {
+    const el = this.wrapperRef.current;
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    const total = rect.height - window.innerHeight;
+    if (total <= 0) return 1;
+    return Math.min(1, Math.max(0, -rect.top / total));
+  }
+
+  onScroll = () => { if (!this.rafId && this.inView && !this.reducedMotion) this.loop(); };
+
+  loop = () => {
+    if (!this.inView || (typeof document !== 'undefined' && document.hidden)) { this.rafId = null; return; }
+    const raw = this.getRawProgress();
+    const converged = Math.abs(raw - this.smoothProgress) < 0.0005;
+    this.smoothProgress += (raw - this.smoothProgress) * 0.12;
+    if (converged) this.smoothProgress = raw;
+    this.renderFrame(this.smoothProgress);
+    if (Math.abs(this.smoothProgress - this.state.progress) > 0.002) this.setState({ progress: this.smoothProgress });
+    if (converged) { this.rafId = null; return; }
+    this.rafId = requestAnimationFrame(this.loop);
+  };
+
+  async initThree() {
+    const canvas = this.canvasRef.current;
+    if (!canvas) return;
+    const THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+    this.THREE = THREE;
+    const galacticFrame = (px, py, pz, cx, cy, cz) => {
+      const pole = new THREE.Vector3(px, py, pz).normalize();
+      const core = new THREE.Vector3(cx, cy, cz);
+      core.addScaledVector(pole, -core.dot(pole)).normalize();
+      return { pole, core };
+    };
+    const near = galacticFrame(-0.32, 0.90, 0.29, 0.86, 0.24, -0.45);
+    const far = galacticFrame(0.68, 0.73, 0.06, -0.10, 0.06, 0.99);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 640 ? 1.5 : 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.Camera();
+    const uniforms = {
+      uSunDir: { value: new THREE.Vector3(-0.75, 0.28, 0.60).normalize() },
+      uSaturnDir: { value: new THREE.Vector3(0.36, 0.14, -0.92).normalize() },
+      uSaturnAxis: { value: new THREE.Vector3(0.08, 0.83, 0.55).normalize() },
+      uPoleN: { value: near.pole }, uCoreN: { value: near.core },
+      uPoleF: { value: far.pole }, uCoreF: { value: far.core },
+      uResolution: { value: new THREE.Vector2(1, 1) },
+      uCamRight: { value: new THREE.Vector3(1, 0, 0) },
+      uCamUp: { value: new THREE.Vector3(0, 1, 0) },
+      uCamForward: { value: new THREE.Vector3(0, 0, -1) },
+      uFov: { value: 0.9 },
+    };
+    const material = new THREE.RawShaderMaterial({
+      uniforms,
+      vertexShader: `attribute vec3 position; attribute vec2 uv; varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+      fragmentShader: `precision highp float;
+        ${CELESTIAL_SPHERES_GLSL}
+        uniform vec2 uResolution; uniform vec3 uCamRight, uCamUp, uCamForward; uniform float uFov;
+        varying vec2 vUv;
+        void main() {
+          vec2 ndc = vUv * 2.0 - 1.0;
+          float aspect = uResolution.x / max(uResolution.y, 1.0);
+          float t = tan(uFov * 0.5);
+          vec3 rd = normalize(uCamForward + uCamRight * ndc.x * aspect * t + uCamUp * ndc.y * t);
+          float foot = max(uFov / max(uResolution.y, 1.0) * 1.5, 0.0006);
+          vec3 col = skyNear(rd, foot);
+          col = col / (1.0 + col);
+          col = pow(col, vec3(1.0 / 2.2));
+          gl_FragColor = vec4(col, 1.0);
+        }`,
     });
-  </script>
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    this.three = { renderer, scene, camera, material, uniforms, mesh };
+    this.resizeThree();
+  }
+
+  resizeThree() {
+    if (!this.three) return;
+    const canvas = this.canvasRef.current;
+    if (!canvas || !canvas.parentElement) return;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    this.three.renderer.setSize(rect.width, rect.height, false);
+    this.three.uniforms.uResolution.value.set(rect.width, rect.height);
+  }
+
+  renderFrame(progress) {
+    if (!this.three) return;
+    const THREE = this.THREE;
+    const forward0 = new THREE.Vector3(-0.55, 0.16, 0.82).normalize();
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    const yaw = -0.4 + progress * 0.85;
+    const pitch = -0.06 + progress * 0.16;
+    const forward = forward0.clone().applyAxisAngle(worldUp, yaw);
+    const right = new THREE.Vector3().crossVectors(forward, worldUp).normalize();
+    forward.applyAxisAngle(right, pitch).normalize();
+    const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+    this.three.uniforms.uCamForward.value.copy(forward);
+    this.three.uniforms.uCamRight.value.copy(right);
+    this.three.uniforms.uCamUp.value.copy(up);
+    this.three.uniforms.uFov.value = 0.95 - progress * 0.1;
+    this.three.renderer.render(this.three.scene, this.three.camera);
+  }
+
+  disposeThree() {
+    if (!this.three) return;
+    this.three.mesh.geometry.dispose();
+    this.three.material.dispose();
+    this.three.renderer.dispose();
+    this.three = null;
+  }
+
+  setLang = (lang) => {
+    this.setState({ lang });
+    try { localStorage.setItem('se-lang', lang); } catch (e) { /* storage unavailable */ }
+    if (typeof document !== 'undefined') document.documentElement.lang = lang;
+  };
+  setDe = () => this.setLang('de');
+  setEn = () => this.setLang('en');
+
+  renderVals() {
+    const p = this.state.progress;
+    const lang = this.state.lang;
+    const t = COPY[lang];
+    const { narrow, phone } = this.state;
+    const ra = (4 + p * 3.2).toFixed(2);
+    const dec = (-5 - p * 11.6).toFixed(2);
+    const coordReadout = `\u03b1 ${ra}h \u00b7 \u03b4 ${dec}\u00b0 \u00b7 J2026.7`;
+    const win = (start, end, fadeIn = 0.04, fadeOut = 0.04) => {
+      if (p < start - fadeIn || p > end + fadeOut) return 0;
+      if (p < start) return (p - (start - fadeIn)) / fadeIn;
+      if (p > end) return 1 - (p - end) / fadeOut;
+      return 1;
+    };
+    const up = (start, len) => Math.min(1, Math.max(0, (p - start) / len));
+    const windows = [[0.24, 0.42], [0.46, 0.62], [0.66, 0.82], [0.86, 1]];
+    const heroStages = t.stages.map((s, i) => ({
+      ...s,
+      opacity: i === 3 ? win(0.86, 1, 0.06, 0) : win(windows[i][0], windows[i][1]),
+    }));
+    const starts = [0, 0.24, 0.46, 0.66, 0.86];
+    let activeIdx = 0;
+    starts.forEach((s, i) => { if (p >= s - 0.04) activeIdx = i; });
+    const rail = t.railLabels.map((label, i) => ({
+      label,
+      opacity: i === activeIdx ? 1 : 0.22,
+      labelOpacity: i === activeIdx ? 0.9 : 0,
+    }));
+    return {
+      t, heroStages, rail, coordReadout,
+      navLinksDisplay: narrow ? 'none' : 'flex',
+      deColor: lang === 'de' ? 'var(--color-accent-200)' : 'var(--color-neutral-500)',
+      enColor: lang === 'en' ? 'var(--color-accent-200)' : 'var(--color-neutral-500)',
+      setDe: this.setDe, setEn: this.setEn,
+      mailtoHref: 'mailto:deusexlumen@airmail.cc?subject=' + encodeURIComponent(t.mailSubject),
+      canvasRef: this.canvasRef,
+      wrapperRef: this.wrapperRef,
+      wrapperHeight: this.reducedMotion ? '100vh' : (phone ? '520vh' : '420vh'),
+      heroStageStyle: (this.reducedMotion
+        ? 'position: relative;'
+        : (p < 0.999 ? 'position: fixed; top: 0; left: 0; right: 0;' : 'position: absolute; bottom: 0; left: 0; right: 0;'))
+        + ' height: 100vh; overflow: hidden; display: flex; align-items: center; padding-top: 60px; z-index: 1;',
+      heroScrimStyle: 'position: absolute; inset: 0; z-index: 1; background: '
+        + (narrow
+          ? 'linear-gradient(180deg, color-mix(in srgb, var(--color-bg) 84%, transparent) 0%, color-mix(in srgb, var(--color-bg) 62%, transparent) 55%, var(--color-bg) 100%);'
+          : 'linear-gradient(90deg, var(--color-bg) 0%, color-mix(in srgb, var(--color-bg) 55%, transparent) 38%, transparent 62%), linear-gradient(0deg, var(--color-bg) 0%, transparent 22%);'),
+      heroTextStyle: narrow
+        ? 'position: relative; z-index: 2; width: 100%; padding: 0 clamp(20px, 6vw, 48px);'
+        : 'position: relative; z-index: 2; width: min(560px, 46vw); flex-shrink: 0; padding: 0 var(--space-8) 0 clamp(24px, 6vw, 96px); box-sizing: content-box;',
+      diagramStyle: narrow
+        ? 'position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(130vw, 720px); aspect-ratio: 1; opacity: 0.32; pointer-events: none;'
+        : 'position: absolute; right: clamp(8px, 4vw, 80px); top: 50%; transform: translateY(-50%); width: clamp(320px, 40vw, 540px); aspect-ratio: 1; pointer-events: none;',
+      railOpacity: narrow ? 0 : 1,
+      hdOpacity: up(0.20, 0.06),
+      gkOpacity: up(0.44, 0.07),
+      numOpacity: up(0.64, 0.07),
+      synthOpacity: up(0.86, 0.09),
+      channelDash: 1 - up(0.22, 0.20),
+      stage0Opacity: win(0, 0.18, 0.02, 0.06),
+      scrollHintOpacity: Math.max(0, 1 - p * 8),
+    };
+  }
+}
+</script>
 </body>
 </html>
